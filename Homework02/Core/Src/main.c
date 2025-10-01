@@ -41,6 +41,9 @@
 
 /* Private variables ---------------------------------------------------------*/
 UART_HandleTypeDef huart2;
+uint32_t tick;
+uint32_t last_tick;
+uint32_t delta;
 
 /* USER CODE BEGIN PV */
 
@@ -58,11 +61,16 @@ static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN 0 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == GPIO_PIN_8) {
-		GPIO_PinState ledstatus = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
-		if (ledstatus == GPIO_PIN_SET) {
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
-		} else {
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+		tick = HAL_GetTick();
+		delta = tick - last_tick;
+		last_tick = tick;
+		if (delta >= 100) {
+			GPIO_PinState ledstatus = HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_5);
+			if (ledstatus == GPIO_PIN_SET) {
+				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
+			} else {
+				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+			}
 		}
 	}
 }
