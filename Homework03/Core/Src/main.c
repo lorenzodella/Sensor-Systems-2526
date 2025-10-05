@@ -37,14 +37,22 @@ typedef struct {
 /* USER CODE BEGIN PD */
 
 #define DO4 3206
+#define REb4 3032
 #define RE4 2857
+#define Mib4 2700
 #define MI4 2545
 #define FA4 2406
+#define SOLb4 2270
 #define SOL4 2142
+#define LAb4 2024
 #define LA4 1909
 #define SIb4 1802
+#define SI4 1700
 
-#define TEMPO 150
+#define REb5 1506
+#define FA5 1203
+
+#define TEMPO 100
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -58,12 +66,22 @@ TIM_HandleTypeDef htim1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint32_t tick;
-uint32_t last_tick;
-uint32_t delta;
-int flag = 1;
 
 note_t song[] = {
+		{ .freq = REb4 , .duration = 1 },
+		{ .freq = SOLb4 , .duration = 1 },
+		{ .freq = LAb4 , .duration = 1 },
+		{ .freq = REb5 , .duration = 1 },
+		{ .freq = FA5 , .duration = 8 },
+		{ .freq = SIb4 , .duration = 4 },
+		{ .freq = LA4 , .duration = 2 },
+		{ .freq = FA4 , .duration = 2 },
+		{ .freq = SOL4 , .duration = 2 },
+		{ .freq = RE4 , .duration = 2 },
+		{ .freq = DO4 , .duration = 4 }
+};
+
+note_t song2[] = {
 		{ .freq = FA4 , .duration = 2 },
 		{ .freq = FA4 , .duration = 2 },
 		{ .freq = FA4 , .duration = 2 },
@@ -98,7 +116,7 @@ static void MX_TIM1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void Set_Note_PWN(note_t n) {
+void Set_Note(note_t n) {
 
 	  /* USER CODE BEGIN TIM1_Init 0 */
 
@@ -160,11 +178,10 @@ void Set_Note_PWN(note_t n) {
 void playsong() {
 	uint8_t i=0;
 	  for(i=0; i<sizeof(song)/sizeof(song[0]); i++){
-		  Set_Note_PWN(song[i]);
+		  Set_Note(song[i]);
 		  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
 		  HAL_Delay(song[i].duration * TEMPO);
 		  HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
-		  HAL_Delay(50);
 	  }
 }
 
