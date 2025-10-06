@@ -100,19 +100,12 @@ static void MX_TIM3_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void Set_Note_PWN(note_t n) {
-
-	  /* USER CODE BEGIN TIM1_Init 0 */
-
-	  /* USER CODE END TIM1_Init 0 */
+void Set_Note_PWM(note_t n) {
 
 	  TIM_MasterConfigTypeDef sMasterConfig = {0};
 	  TIM_OC_InitTypeDef sConfigOC = {0};
 	  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
-
-	  /* USER CODE BEGIN TIM1_Init 1 */
-
-	  /* USER CODE END TIM1_Init 1 */
+	
 	  htim1.Instance = TIM1;
 	  htim1.Init.Prescaler = 99;
 	  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
@@ -152,24 +145,16 @@ void Set_Note_PWN(note_t n) {
 	  {
 	    Error_Handler();
 	  }
-	  /* USER CODE BEGIN TIM1_Init 2 */
 
-	  /* USER CODE END TIM1_Init 2 */
 	  HAL_TIM_MspPostInit(&htim1);
 
 }
 
-void Set_Timer(note_t n) {
-	/* USER CODE BEGIN TIM3_Init 0 */
-
-	  /* USER CODE END TIM3_Init 0 */
+void Set_Note_Timer(note_t n) {
 
 	  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
 	  TIM_MasterConfigTypeDef sMasterConfig = {0};
 
-	  /* USER CODE BEGIN TIM3_Init 1 */
-
-	  /* USER CODE END TIM3_Init 1 */
 	  htim3.Instance = TIM3;
 	  htim3.Init.Prescaler = 8399;
 	  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
@@ -191,15 +176,12 @@ void Set_Timer(note_t n) {
 	  {
 	    Error_Handler();
 	  }
-	  /* USER CODE BEGIN TIM3_Init 2 */
-
-	  /* USER CODE END TIM3_Init 2 */
 }
 
 void playsong() {
-  Set_Note_PWN(song[i]);
+  Set_Note_PWM(song[i]);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-  Set_Timer(song[i]);
+  Set_Note_Timer(song[i]);
   HAL_TIM_Base_Start_IT(&htim3);
   __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_8);
 }
