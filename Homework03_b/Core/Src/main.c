@@ -64,22 +64,8 @@ uint32_t last_tick;
 uint32_t delta;
 int i = 0;
 
-note_t song[] = {
-		{ .freq = FA4 , .duration = 2 },
-		{ .freq = FA4 , .duration = 2 },
-		{ .freq = FA4 , .duration = 2 },
-		{ .freq = MI4 , .duration = 3 },
-		{ .freq = RE4 , .duration = 1 },
-		{ .freq = DO4 , .duration = 4 },
-		{ .freq = SIb4 , .duration = 2 },
-		{ .freq = SIb4 , .duration = 2 },
-		{ .freq = SIb4 , .duration = 2 },
-		{ .freq = LA4 , .duration = 3 },
-		{ .freq = SOL4 , .duration = 1 },
-		{ .freq = FA4 , .duration = 4 }
-};
 
-note_t song1[] = {
+note_t song[] = {
 		{ .freq = DO4 , .duration = 2 },
 		{ .freq = RE4 , .duration = 2 },
 		{ .freq = MI4 , .duration = 2 },
