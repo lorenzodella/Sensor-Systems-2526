@@ -68,35 +68,6 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 
 note_t song[] = {
-		{ .freq = REb4 , .duration = 1 },
-		{ .freq = SOLb4 , .duration = 1 },
-		{ .freq = LAb4 , .duration = 1 },
-		{ .freq = REb5 , .duration = 1 },
-		{ .freq = FA5 , .duration = 8 },
-		{ .freq = SIb4 , .duration = 4 },
-		{ .freq = LA4 , .duration = 2 },
-		{ .freq = FA4 , .duration = 2 },
-		{ .freq = SOL4 , .duration = 2 },
-		{ .freq = RE4 , .duration = 2 },
-		{ .freq = DO4 , .duration = 4 }
-};
-
-note_t song2[] = {
-		{ .freq = FA4 , .duration = 2 },
-		{ .freq = FA4 , .duration = 2 },
-		{ .freq = FA4 , .duration = 2 },
-		{ .freq = MI4 , .duration = 3 },
-		{ .freq = RE4 , .duration = 1 },
-		{ .freq = DO4 , .duration = 4 },
-		{ .freq = SIb4 , .duration = 2 },
-		{ .freq = SIb4 , .duration = 2 },
-		{ .freq = SIb4 , .duration = 2 },
-		{ .freq = LA4 , .duration = 3 },
-		{ .freq = SOL4 , .duration = 1 },
-		{ .freq = FA4 , .duration = 2 }
-};
-
-note_t song1[] = {
 		{ .freq = DO4 , .duration = 2 },
 		{ .freq = RE4 , .duration = 2 },
 		{ .freq = MI4 , .duration = 2 },
