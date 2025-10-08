@@ -34,34 +34,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := Homework04
+BUILD_ARTIFACT_NAME := Homework04_b
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-Homework04.elf \
+Homework04_b.elf \
 
 MAP_FILES += \
-Homework04.map \
+Homework04_b.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-Homework04.list \
+Homework04_b.list \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: Homework04.elf secondary-outputs
+main-build: Homework04_b.elf secondary-outputs
 
 # Tool invocations
-Homework04.elf Homework04.map: $(OBJS) $(USER_OBJS) C:\Users\edoar\OneDrive\ -\ Politecnico\ di\ Milano\5anno\Sensor\ Systems\sensor-systems-2526\Homework04\STM32F401RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Homework04.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\edoar\OneDrive - Politecnico di Milano\5anno\Sensor Systems\sensor-systems-2526\Homework04\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Homework04.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Homework04_b.elf Homework04_b.map: $(OBJS) $(USER_OBJS) C:\Users\edoar\OneDrive\ -\ Politecnico\ di\ Milano\5anno\Sensor\ Systems\sensor-systems-2526\Homework04_b\STM32F401RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "Homework04_b.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\edoar\OneDrive - Politecnico di Milano\5anno\Sensor Systems\sensor-systems-2526\Homework04_b\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Homework04_b.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -70,14 +70,14 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-Homework04.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "Homework04.list"
+Homework04_b.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "Homework04_b.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) Homework04.elf Homework04.list Homework04.map default.size.stdout
+	-$(RM) Homework04_b.elf Homework04_b.list Homework04_b.map default.size.stdout
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
