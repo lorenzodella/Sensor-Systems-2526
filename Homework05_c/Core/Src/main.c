@@ -78,10 +78,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 	int drawBarPercentage = voltage  / (float)VCC * LCD_LENGTH;
 	lcd_drawBar(drawBarPercentage);
 
-	HAL_TIM_Base_Start(&htim3);
-
-
-
 }
 
 /* USER CODE END 0 */
