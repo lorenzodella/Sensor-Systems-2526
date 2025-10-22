@@ -70,7 +70,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 	float voltage = VCC * (float)value / (float)ADC_LEVELS;
 	int len = snprintf(buffer, sizeof(buffer), "[i] Read voltage: %.3fV\r\n", voltage);
 	HAL_UART_Transmit(&huart2, (uint8_t*)buffer, len, 100);
-	HAL_TIM_Base_Start(&htim3);
 }
 
 
