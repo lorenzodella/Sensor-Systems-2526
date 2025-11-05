@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,18 +50,8 @@ UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	int8_t x, y, z;
-	HAL_I2C_Master_Receive(&hi2c1, (0b0101000<<1), &x, 1, 10);
-	HAL_I2C_Master_Receive(&hi2c1, (0b0101000<<1), &y, 1, 10);
-	HAL_I2C_Master_Receive(&hi2c1, (0b0101000<<1), &z, 1, 10);
-	uint8_t data = 0x29 | (1<<7);
-	HAL_I2C_Master_Transmit(&hi2c1, (0b0101000<<1) + 1, &data, 1, 10);
-
-	char buf[128] = {0};
-	int len = snprintf(buf, sizeof(buf), "x: %+.2f g\r\ny: %+.2f g\r\nz: %+.2f g\r\n\r\n", x/64.0, y/64.0, z/64.0);
-	HAL_UART_Transmit_DMA(&huart2, buf, len);
-}
+int8_t buff[6];
+uint8_t ADDR;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -77,7 +67,17 @@ static void MX_TIM3_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	HAL_I2C_Master_Receive_DMA(&hi2c1, ADDR, buff, sizeof(buff));
+}
 
+void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c){
+	char buf[128] = {0};
+	int len = snprintf(buf, sizeof(buf), "x: %+.2f g\r\ny: %+.2f g\r\nz: %+.2f g\r\n\r\n", buff[0]/64.0, buff[2]/64.0, buff[4]/64.0);
+	HAL_UART_Transmit_DMA(&huart2, buf, len);
+	uint8_t data = 0x29 | (1<<7);
+	HAL_I2C_Master_Transmit_DMA(&hi2c1, ADDR + 1, &data, 1);
+}
 /* USER CODE END 0 */
 
 /**
@@ -114,24 +114,26 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+  uint8_t ADDR_LIS2DE = 0b01010000;
+  uint8_t ADDR_LIS2DW = 0b01010000;
   uint8_t data = 0x29;
   uint8_t config_reg[] = {0x20, 0b00010111};
-  if (HAL_I2C_Master_Transmit_DMA(&hi2c1, (0b0101000<<1), config_reg, 2) == HAL_OK) {
-	  char buf[] = "LIS2DE detected\r\n";
-	  HAL_UART_Transmit_DMA(&huart2, buf, sizeof(buf));
-
-	  data = 0x29 | (1<<7);
-	  HAL_I2C_Master_Transmit_DMA(&hi2c1, (0b0101000<<1) + 1, &data, 1, 10);
-  } else if (HAL_I2C_Master_Transmit_DMA(&hi2c1, (0b0011000<<1), config_reg, 1, 10) == HAL_OK) {
-	  char buf[] = "LIS2DW detected\r\n";
-	  HAL_UART_Transmit_DMA(&huart2, buf, sizeof(buf));
+  if (HAL_I2C_Master_Transmit_DMA(&hi2c1, ADDR_LIS2DE, config_reg, 2) == HAL_OK) {
+	ADDR = ADDR_LIS2DE;
+	char buf[] = "LIS2DE detected\r\n";
+	HAL_UART_Transmit_DMA(&huart2, buf, sizeof(buf));
+  } else if (HAL_I2C_Master_Transmit_DMA(&hi2c1, ADDR_LIS2DW, config_reg, 1) == HAL_OK) {
+	ADDR = ADDR_LIS2DW;
+	char buf[] = "LIS2DW detected\r\n";
+	HAL_UART_Transmit_DMA(&huart2, buf, sizeof(buf));
   } else {
-	  char buf[] = "Error\r\n";
-	  HAL_UART_Transmit_DMA(&huart2, buf, sizeof(buf));
+	char buf[] = "Error\r\n";
+	HAL_UART_Transmit_DMA(&huart2, buf, sizeof(buf));
   }
 
+  data = 0x29 | (1<<7);
+  HAL_I2C_Master_Transmit_DMA(&hi2c1, ADDR + 1, &data, 1);
   HAL_TIM_Base_Start_IT(&htim3);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
