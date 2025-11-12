@@ -67,11 +67,11 @@ static void MX_TIM3_Init(void);
 uint8_t six[] = {62, 73, 73, 73, 70};
 uint8_t seven[] = {64, 64, 67, 76, 112};
 uint8_t *letters[] = {six, seven};
-int i = 0, j = 0;
+int col = 0, j = 0;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	uint8_t data[] = {letters[j/250][i], 1<<(4-i)};
+	uint8_t data[] = {letters[j/250][col], 1<<(4-col)};
 	HAL_SPI_Transmit_DMA(&hspi1, data, sizeof(data));
-	i = (i+1) % 5;
+	col = (col+1) % 5;
 	j = (j+1) % 500;
 }
 
@@ -117,9 +117,7 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_RESET);
-  uint8_t data = 0;
-  HAL_SPI_Transmit_DMA(&hspi1, &data, sizeof(data));
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
   HAL_TIM_Base_Start_IT(&htim3);
   /* USER CODE END 2 */
 
