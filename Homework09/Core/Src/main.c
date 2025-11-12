@@ -71,11 +71,15 @@ int i = 0, j = 0;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	uint8_t data[] = {letters[j/250][i], 1<<(4-i)};
 	HAL_SPI_Transmit_DMA(&hspi1, data, sizeof(data));
-	for(int i=0; i<16; i++) {
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
-	}
 	i = (i+1) % 5;
 	j = (j+1) % 500;
+}
+
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
+    if (hspi == &hspi1) {
+    	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
+    	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
+    }
 }
 /* USER CODE END 0 */
 
