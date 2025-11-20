@@ -43,10 +43,10 @@ uint16_t row_pins[] = {
 		GPIO_PIN_13,
 		GPIO_PIN_12,
 };
-char symbols[4][4] = {
+uint8_t symbols[4][4] = {
 		{'F','E','D','C'},
 		{'B','A','9','8'},
-		{'4','7','6','5'},
+		{'7','6','5','4'},
 		{'3','2','1','0'},
 };
 struct {
@@ -68,24 +68,25 @@ UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
-int col = 3;
+int col = 0;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	for(int row=0; row<4; row++) {
+		if(HAL_GPIO_ReadPin(GPIOC, row_pins[row]) == GPIO_PIN_RESET) {
+			if(!flag[row]){
+				buttons[row][col].count++;
+				flag[row] = 1;
+			}
+		} else {
+			buttons[row][col].count = 0;
+			buttons[row][col].printed = 0;
+			flag[row] = 0;
+		}
+	}
 	HAL_GPIO_WritePin(GPIOC, column_pins[col], GPIO_PIN_RESET);
 	col = (col+1) % 4;
 	HAL_GPIO_WritePin(GPIOC, column_pins[col], GPIO_PIN_SET);
-	for(int i=0; i<4; i++) {
-		if(HAL_GPIO_ReadPin(GPIOC, row_pins[i]) == GPIO_PIN_RESET) {
-			if(!flag[i]){
-				buttons[i][col].count++;
-				flag[i] = 1;
-			}
-		} else {
-			buttons[i][col].count = 0;
-			buttons[i][col].printed = 0;
-			flag[i] = 0;
-		}
-	}
 }
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
