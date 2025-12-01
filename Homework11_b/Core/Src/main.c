@@ -191,11 +191,19 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		i++;
 	}else if(htim == TIM_KEYBOARD){
 
+		uint8_t buf[4] = {0, '\r', '\n', '\0'};
 
 		for(int row=0; row<4; row++) {
 			if(HAL_GPIO_ReadPin(GPIOC, row_pins[row]) == GPIO_PIN_RESET) {
 
 				buttons[row][col].count++;
+
+				if(buttons[row][col].count>=10 && !buttons[row][col].printed){
+					buttons[row][col].printed = 1;
+					buf[0] = symbols[row][col];
+					sendsByte(buf[0]);
+
+				}
 
 			} else {
 				buttons[row][col].count = 0;
@@ -203,11 +211,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 			}
 
+
+
 		}
 
 		HAL_GPIO_WritePin(GPIOC, column_pins[col], GPIO_PIN_RESET);
 		col = (col+1) % 4;
 		HAL_GPIO_WritePin(GPIOC, column_pins[col], GPIO_PIN_SET);
+
+
+
+
 
 	}else if(htim == TIM_MATRIX){
 		if(!((buffer <= 'F' && buffer >= 'A') || (buffer <= '9' && buffer >= '0'))) return;
@@ -273,18 +287,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    uint8_t buf[4] = {0, '\r', '\n', '\0'};
 
-	for(int i=0; i<4; i++){
-		for(int j=0; j<4; j++){
-			if(buttons[i][j].count>=10 && !buttons[i][j].printed){
-				buttons[i][j].printed = 1;
-				buf[0] = symbols[i][j];
-				sendsByte(buf[0]);
-
-			}
-		}
-	 }
   }
   /* USER CODE END 3 */
 }
