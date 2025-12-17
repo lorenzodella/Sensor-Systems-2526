@@ -1,0 +1,10 @@
+../Core/Src/main.c:100:6:sendsByte	1
+../Core/Src/main.c:110:6:HAL_TIM_PeriodElapsedCallback	8
+../Core/Src/main.c:162:5:main	5
+../Core/Src/main.c:234:6:SystemClock_Config	3
+../Core/Src/main.c:281:13:MX_TIM2_Init	4
+../Core/Src/main.c:330:13:MX_TIM3_Init	4
+../Core/Src/main.c:375:13:MX_TIM4_Init	4
+../Core/Src/main.c:420:13:MX_USART2_UART_Init	2
+../Core/Src/main.c:453:13:MX_GPIO_Init	1
+../Core/Src/main.c:505:6:Error_Handler	1
