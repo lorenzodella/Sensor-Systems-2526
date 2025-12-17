@@ -71,6 +71,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 			} else {
 				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
 			}
+			// HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 		}
 	}
 }

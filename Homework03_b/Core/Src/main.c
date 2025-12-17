@@ -63,7 +63,7 @@ uint32_t tick;
 uint32_t last_tick;
 uint32_t delta;
 int i = 0;
-
+uint8_t song_playing;
 
 note_t song[] = {
 		{ .freq = DO4 , .duration = 2 },
@@ -87,81 +87,14 @@ static void MX_TIM3_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void Set_Note_PWM(note_t n) {
-
-	  TIM_MasterConfigTypeDef sMasterConfig = {0};
-	  TIM_OC_InitTypeDef sConfigOC = {0};
-	  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
-	
-	  htim1.Instance = TIM1;
-	  htim1.Init.Prescaler = 99;
-	  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-	  htim1.Init.Period = n.freq - 1;
-	  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	  htim1.Init.RepetitionCounter = 0;
-	  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
-	  {
-	    Error_Handler();
-	  }
-	  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-	  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
-	  {
-	    Error_Handler();
-	  }
-	  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	  sConfigOC.Pulse = n.freq / 2 - 1;
-	  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-	  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-	  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-	  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
-	  {
-	    Error_Handler();
-	  }
-	  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
-	  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
-	  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
-	  sBreakDeadTimeConfig.DeadTime = 0;
-	  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
-	  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
-	  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
-	  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
-	  {
-	    Error_Handler();
-	  }
-
-	  HAL_TIM_MspPostInit(&htim1);
-
+	__HAL_TIM_SET_AUTORELOAD(&htim1, n.freq);
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, n.freq / 2);
+	__HAL_TIM_SET_COUNTER(&htim1, 0);
 }
 
 void Set_Note_Timer(note_t n) {
-
-	  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-	  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-	  htim3.Instance = TIM3;
-	  htim3.Init.Prescaler = 8399;
-	  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-	  htim3.Init.Period = n.duration * TEMPO * 10 - 1;
-	  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
-	  {
-	    Error_Handler();
-	  }
-	  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-	  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
-	  {
-	    Error_Handler();
-	  }
-	  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-	  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
-	  {
-	    Error_Handler();
-	  }
+	__HAL_TIM_SET_AUTORELOAD(&htim3, n.duration * TEMPO);
+	__HAL_TIM_SET_COUNTER(&htim3, 0);
 }
 
 void playsong() {
@@ -169,7 +102,8 @@ void playsong() {
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   Set_Note_Timer(song[i]);
   HAL_TIM_Base_Start_IT(&htim3);
-  __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_8);
+  // __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_8);
+  __HAL_TIM_CLEAR_IT(&htim3, TIM_IT_UPDATE);
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -178,9 +112,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
     	HAL_TIM_Base_Stop_IT(&htim3);
     	if(++i<sizeof(song)/sizeof(song[0])){
+    		song_playing = 1;
     		playsong();
     	} else {
-    		HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+    		// HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+    		__HAL_TIM_CLEAR_IT(&htim3, TIM_IT_UPDATE);
+    		song_playing = 0;
     	}
     }
 }
@@ -188,8 +125,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == GPIO_PIN_8) {
 		i=0;
-		HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
-		playsong();
+		// HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
+		if(song_playing == 0)
+			playsong();
 	}
 }
 /* USER CODE END 0 */
@@ -307,7 +245,7 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 0;
+  htim1.Init.Prescaler = 99;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 65535;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -371,7 +309,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 0;
+  htim3.Init.Prescaler = 8399;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 65535;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
