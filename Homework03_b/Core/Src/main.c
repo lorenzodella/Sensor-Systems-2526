@@ -93,7 +93,7 @@ void Set_Note_PWM(note_t n) {
 }
 
 void Set_Note_Timer(note_t n) {
-	__HAL_TIM_SET_AUTORELOAD(&htim3, n.duration * TEMPO);
+	__HAL_TIM_SET_AUTORELOAD(&htim3, n.duration * TEMPO * 10);
 	__HAL_TIM_SET_COUNTER(&htim3, 0);
 }
 
@@ -102,7 +102,6 @@ void playsong() {
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   Set_Note_Timer(song[i]);
   HAL_TIM_Base_Start_IT(&htim3);
-  // __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_8);
   __HAL_TIM_CLEAR_IT(&htim3, TIM_IT_UPDATE);
 }
 
@@ -115,7 +114,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     		song_playing = 1;
     		playsong();
     	} else {
-    		// HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
     		__HAL_TIM_CLEAR_IT(&htim3, TIM_IT_UPDATE);
     		song_playing = 0;
     	}
@@ -124,10 +122,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == GPIO_PIN_8) {
-		i=0;
-		// HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
-		if(song_playing == 0)
+		if(song_playing == 0) {
+			i=0;
 			playsong();
+		}
 	}
 }
 /* USER CODE END 0 */
@@ -311,7 +309,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 8399;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 65535;
+  htim3.Init.Period = 10;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
