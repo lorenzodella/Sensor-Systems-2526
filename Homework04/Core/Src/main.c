@@ -21,7 +21,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdio.h"
+#include "string.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,7 +47,6 @@ UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
-char buffer[512] = {0};
 
 /* USER CODE END PV */
 
@@ -63,7 +63,13 @@ static void MX_TIM2_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	if(htim == &htim2) {
+		char string[64];
+		int len = snprintf(string, sizeof(string), "Mattia  %d \r\n", 2002);
+		HAL_UART_Transmit_DMA(&huart2, (uint8_t *) string, len);
+	}
+}
 
 /* USER CODE END 0 */
 
@@ -100,12 +106,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start(&htim2);
-  char string[64];
-
-
-
-
+  HAL_TIM_Base_Start_IT(&htim2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -115,11 +116,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  int len = snprintf(string, sizeof(string), "Mattia  %d \r\n", 2002);
-	  /*HAL_UART_Transmit(&huart2, string, len, 100);
-	  HAL_Delay(1000);*/
-	  HAL_UART_Transmit_DMA(&huart2, string, len);
-	  HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
@@ -203,7 +199,7 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
   {

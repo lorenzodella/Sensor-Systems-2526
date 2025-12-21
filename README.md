@@ -13,3 +13,11 @@
 ## Homework03_b
 - Play a song using the speaker when the microphone detects a loud sound. WITHOUT using HAL_Delay.
 - *corrected version*
+
+## Homework04
+- Send a string containing your name and your year of birth followed by a new line every second using USART DMA.
+- *corrected version*
+
+## Homework04_b
+- Write on the LCD the name of each member of your group, one per line, in alphabetical order.
+- *corrected version*
