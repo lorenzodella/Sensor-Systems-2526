@@ -33,6 +33,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define VCC 3.3f
+#define ADC_LEVELS 4096.0f
+#define LENGTH 1000
 
 /* USER CODE END PD */
 
@@ -67,39 +70,32 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint16_t buff[1000];
+uint16_t buff[LENGTH];
 float sum=0;
 
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
-	for(int i = 500; i < 1000; i++){
-			sum += buff[i];
-		}
-
-	float avg = (sum / 1000) * 3.3 /4096;
-
-	float ldr = (avg * 100)/(3.3 - avg);
-
-	float lux = 10* pow((100 / ldr), 1.25);
-
-	static char string[250];
-
-	snprintf(string, sizeof(string), "The average value is: %.2f KOhm  and the lux value is: %.2f lm \r\n", ldr, lux);
-
-	HAL_UART_Transmit_DMA(&huart2, string, sizeof(string));
-
-
-	sum = 0;
-
-}
-
-void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef *hadc){
-
-	for(int i = 0; i < 500; i++){
+	for(int i = LENGTH/2; i < LENGTH; i++){
 		sum += buff[i];
 	}
 
+	float avg = sum / LENGTH;
+	float voltage = avg * VCC / ADC_LEVELS;
+	float ldr = (voltage * 100)/(VCC - voltage);
+	float lux = 10 * pow((100 / ldr), 1.25);
 
+	static char string[250];
+	snprintf(string, sizeof(string), "The average value is: %.2f KOhm  and the lux value is: %.2f lm \r\n", ldr, lux);
+
+	HAL_UART_Transmit_DMA(&huart2, (uint8_t *)string, sizeof(string));
+
+	sum = 0;
+}
+
+void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef *hadc){
+	for(int i = 0; i < LENGTH/2; i++){
+		sum += buff[i];
+	}
 }
 
 /* USER CODE END 0 */
@@ -139,7 +135,7 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim2);
-  HAL_ADC_Start_DMA(&hadc1, buff, 1000);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t *)buff, LENGTH);
 
   /* USER CODE END 2 */
 

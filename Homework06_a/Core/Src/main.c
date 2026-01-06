@@ -32,7 +32,13 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define ACQUISITIONS 3
-
+#define VDD 3.3f
+#define VSS 0.0f
+#define RESOLUTION 12		// resolution of ADC [bits]
+#define V25 0.76f			// voltage at 25°C [V]
+#define AVG_SLOPE 0.0025f	// temperature sensor average slope [V/°C]
+#define ADC_LEVELS 4096.0f	// number of levels of ADC [2^12]
+#define FSR VDD-VSS
 
 /* USER CODE END PD */
 
@@ -71,18 +77,14 @@ static void MX_TIM3_Init(void);
 uint16_t voltages[ACQUISITIONS];
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc){
-	float vpot = (voltages[0] * 3.3) / 4096.0;
-	float temp = ((voltages[1] *3.3 /4096.0 - 0.76 ) / 0.0025) + 25.0;
-	float Vref = (voltages[2] * 3.3) / 4096.0;
-
+	float vpot = (voltages[0] * FSR) / ADC_LEVELS;
+	float temp = ((voltages[1] * FSR) / ADC_LEVELS - V25) / AVG_SLOPE + 25.0;
+	float Vref = (voltages[2] * FSR) / ADC_LEVELS;
 
 	static char string[250];
-
 	snprintf(string, sizeof(string), "The potentiometer value is : %.2f V, the temperature is : %.2f °C and the reference voltage is %.2f V \r\n", vpot, temp, Vref);
 
-
-	HAL_UART_Transmit_DMA(&huart2, string, sizeof(string));
-
+	HAL_UART_Transmit_DMA(&huart2, (uint8_t *)string, sizeof(string));
 }
 
 /* USER CODE END 0 */
@@ -122,7 +124,7 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim3);
-  HAL_ADC_Start_DMA(&hadc1, voltages, ACQUISITIONS);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t *)voltages, ACQUISITIONS);
 
   /* USER CODE END 2 */
 

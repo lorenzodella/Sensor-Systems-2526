@@ -42,3 +42,13 @@
 - **TOPICS:** Potentiometer, ADC (IT mode), LCD (drawbar)
 - Acquire the potentiometer voltage using a timer to trigger a conversion at a regular conversion rate of 1 Hz and showing the value on the LCD.
 - *corrected version*
+
+## Homework06_a
+- **TOPICS:** Potentiometer, Temperature sensor, Vref, ADC (DMA circular mode), USART (TX DMA mode)
+- Acquire three voltages (Potentiometer, Temperature sensor, Vref) every 1s and send them to a remote terminal.
+- *corrected version*
+
+## Homework06_b
+- **TOPICS:** LDR, ADC (DMA circular mode, HalfCpltCallback), USART (TX DMA mode)
+- Acquire LDR resistance value every ms and to send its average value to a remote terminal every 1s. Then convert the resistance value to a lux level and send that to the remote terminal.
+- *corrected version*
