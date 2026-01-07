@@ -52,3 +52,8 @@
 - **TOPICS:** LDR, ADC (DMA circular mode, HalfCpltCallback), USART (TX DMA mode)
 - Acquire LDR resistance value every ms and to send its average value to a remote terminal every 1s. Then convert the resistance value to a lux level and send that to the remote terminal.
 - *corrected version*
+
+## Homework07
+- **TOPICS:** LM75 (Temperature sensor), I2C (TX-RX DMA mode), USART (TX DMA mode)
+- Read the temperature measured by the LM75 and send it to a remote terminal every 1 second. Read all 11 bits within an interrupt routine.
+- *corrected version*

@@ -41,6 +41,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
+DMA_HandleTypeDef hdma_i2c1_rx;
+DMA_HandleTypeDef hdma_i2c1_tx;
 
 TIM_HandleTypeDef htim3;
 
@@ -48,7 +50,10 @@ UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
+uint8_t LM75B_ADDRESS = 0b10010000;
+uint8_t LM75B_TEMP_ADDRESS = 0x00;
 
+uint8_t temp[6];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -65,18 +70,28 @@ static void MX_TIM3_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	uint8_t temp[2], temp2[2];
-	char buf[512];
-	float dec = 0.0;
-	float coef = 0.5;
-	HAL_I2C_Master_Receive(&hi2c1, 0x48<<1, temp, 2, 10);
-	HAL_I2C_Master_Receive(&hi2c1, 0x48<<1, temp2, 2, 10);
-	for(int i=1; i<=3; i++){
-		dec += ((temp2[1]>>(8-i)) & 0x1) * coef;
-		coef /= 2;
+	if(htim->Instance == TIM3){
+		// receive the temperature 3 times
+		HAL_I2C_Master_Receive_DMA(&hi2c1, LM75B_ADDRESS+1, temp, 6);
 	}
-	int len = snprintf(buf, sizeof(buf), "Temp: %d.%03d°C\r\n", (int8_t) temp2[0], (int) (dec * 1000));
-	HAL_UART_Transmit_DMA(&huart2, (uint8_t *)buf, len);
+}
+
+void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c){
+	if(hi2c->Instance == I2C1){
+		int16_t temperature = 0;
+		if (temp[0]==temp[2] && temp[1]==temp[3]){
+			// if I read the same temp 2 times, it was correct
+			temperature = temp[0]<<8 | temp[1];
+		} else {
+			// else, the third reading is the correct temperature
+			temperature = temp[4]<<8 | temp[5];
+		}
+
+		char buf[512];
+		float temp_c = temperature/256.0; // divide xxxxxxxx-xxx00000 by 2^8 to get xxxxxxxx.xxx
+		int len = snprintf(buf, sizeof(buf), "Temp: %.3f°C\r\n", temp_c);
+		HAL_UART_Transmit_DMA(&huart2, (uint8_t *)buf, len);
+	}
 }
 /* USER CODE END 0 */
 
@@ -114,7 +129,8 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  HAL_I2C_Master_Transmit(&hi2c1, (0x48<<1) + 1, 0x00, 1, 10);
+  // transmit to the sensor the address I want to read in the next operation (in this case the temp reg)
+  HAL_I2C_Master_Transmit(&hi2c1, LM75B_ADDRESS, &LM75B_TEMP_ADDRESS, 1, 10);
   HAL_TIM_Base_Start_IT(&htim3);
   /* USER CODE END 2 */
 
@@ -297,9 +313,15 @@ static void MX_DMA_Init(void)
   __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
   /* DMA1_Stream6_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
+  /* DMA1_Stream7_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
 
 }
 
