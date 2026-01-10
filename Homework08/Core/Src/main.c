@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,7 +48,29 @@ UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
+struct {
+  int8_t x, _x;
+  int8_t y, _y;
+  int8_t z;
+} coord = { 0 };
+uint8_t ADDR;
 
+uint8_t ADDR_LIS2DE = 0b01010000;
+uint8_t ADDR_LIS2DW = 0b00110000;
+
+// reg addr, 1 Hz +  XYZ enabled
+uint8_t CTRL_REG1[] = {0x20, 0b00010111};
+// reg addr, no HPF
+uint8_t CTRL_REG2[] = {0x21, 0b00000000};
+// reg addr, continuous update + 2g FSR + self test disabled
+uint8_t CTRL_REG4[] = {0x23, 0b00000000};
+
+// set base reg + add autoincrement
+uint8_t OUT_BASE_ADD_AUTOINCREMENT = 0x29 | (1<<7);
+
+uint8_t OUT_X_ADD = 0x29;
+uint8_t OUT_Y_ADD = 0x2B;
+uint8_t OUT_Z_ADD = 0x2D;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -64,24 +86,16 @@ static void MX_TIM3_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t addr = 0;
-uint8_t data_reg = 0x29;
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	struct coord {
-	  int8_t x, _x;
-	  int8_t y, _y;
-	  int8_t z, _z;
-	} c = { 0 };
-
-	HAL_I2C_Master_Receive(&hi2c1, (addr<<1), &c, sizeof(c), 100);
-
-	uint8_t data = data_reg | (1<<7);
-	HAL_I2C_Master_Transmit(&hi2c1, (addr<<1) + 1, &data, 1, 10);
+	HAL_I2C_Master_Receive(&hi2c1, ADDR + 1, (uint8_t *) &coord, sizeof(coord), 100);
 
 	char buf[128] = {0};
-	int len = snprintf(buf, sizeof(buf), "x: %+.2f g\r\ny: %+.2f g\r\nz: %+.2f g\r\n\r\n", c.x/64.0, c.y/64.0, c.z/64.0);
-	HAL_UART_Transmit_DMA(&huart2, buf, len);
+	int len = snprintf(buf, sizeof(buf),
+			"x: %+.2f g\r\ny: %+.2f g\r\nz: %+.2f g\r\n\r\n",
+			coord.x/64.0, coord.y/64.0, coord.z/64.0);
+
+	HAL_UART_Transmit_DMA(&huart2, (uint8_t *)buf, len);
 }
 /* USER CODE END 0 */
 
@@ -119,24 +133,28 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  uint8_t config_reg[] = {0x20, 0b00010111};
-  if (HAL_I2C_Master_Transmit(&hi2c1, (0b0101000<<1), config_reg, sizeof(config_reg), 10) == HAL_OK) {
-	  char buf[] = "LIS2DE detected\r\n";
-	  HAL_UART_Transmit_DMA(&huart2, buf, sizeof(buf) - 1); // sizeof counts the null terminator
-	  addr = 0b0101000;
-  } else if (HAL_I2C_Master_Transmit(&hi2c1, (0b0011000<<1), config_reg, sizeof(config_reg), 10) == HAL_OK) {
-	  char buf[] = "LIS2DW detected\r\n";
-	  HAL_UART_Transmit_DMA(&huart2, buf, sizeof(buf) - 1);
-	  addr = 0b0011000;
-  } else {
-	  char buf[] = "Error\r\n";
-	  HAL_UART_Transmit_DMA(&huart2, buf, sizeof(buf) - 1);
-  }
+  // detect sensor
+    if (HAL_I2C_Master_Transmit(&hi2c1, ADDR_LIS2DE, CTRL_REG1, sizeof(CTRL_REG1), 10) == HAL_OK) {
+  	ADDR = ADDR_LIS2DE;
+  	uint8_t buf[] = "LIS2DE detected\r\n";
+  	HAL_UART_Transmit_DMA(&huart2, buf, sizeof(buf));
+    } else if (HAL_I2C_Master_Transmit(&hi2c1, ADDR_LIS2DW, CTRL_REG1, sizeof(CTRL_REG1), 10) == HAL_OK) {
+  	ADDR = ADDR_LIS2DW;
+  	uint8_t buf[] = "LIS2DW detected\r\n";
+  	HAL_UART_Transmit_DMA(&huart2, buf, sizeof(buf));
+    } else {
+  	uint8_t buf[] = "Error\r\n";
+  	HAL_UART_Transmit_DMA(&huart2, buf, sizeof(buf));
+    }
 
-  uint8_t data = data_reg | 1<<7;
-  HAL_I2C_Master_Transmit(&hi2c1, (addr<<1) + 1, &data, 1, 10);
+    // configure the other registers
+    HAL_I2C_Master_Transmit(&hi2c1, ADDR, CTRL_REG2, sizeof(CTRL_REG2), 10);
+    HAL_I2C_Master_Transmit(&hi2c1, ADDR, CTRL_REG4, sizeof(CTRL_REG4), 10);
 
-  HAL_TIM_Base_Start_IT(&htim3);
+    // send start address
+    HAL_I2C_Master_Transmit(&hi2c1, ADDR, &OUT_BASE_ADD_AUTOINCREMENT, 1, 10);
+
+    HAL_TIM_Base_Start_IT(&htim3);
   /* USER CODE END 2 */
 
   /* Infinite loop */

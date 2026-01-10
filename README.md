@@ -57,3 +57,13 @@
 - **TOPICS:** LM75 (Temperature sensor), I2C (TX-RX DMA mode), USART (TX DMA mode)
 - Read the temperature measured by the LM75 and send it to a remote terminal every 1 second. Read all 11 bits within an interrupt routine.
 - *corrected version*
+
+## Homework08
+- **TOPICS:** Accelerometer, I2C, USART (TX DMA mode)
+- Read the acceleration measured by the accelerometer and send it to a remote terminal every 1 second. Using timer interrupts and UART DMA.
+- *corrected version*
+
+## Homework08_b
+- **TOPICS:** Accelerometer, I2C (TX-RX DMA mode), USART (TX DMA mode)
+- Read the acceleration measured by the accelerometer and send it to a remote terminal every 1 second. Using timer interrupts, I2C DMA and UART DMA.
+- *corrected version*

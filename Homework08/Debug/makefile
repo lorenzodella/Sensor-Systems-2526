@@ -60,8 +60,8 @@ all: main-build
 main-build: Homework08.elf secondary-outputs
 
 # Tool invocations
-Homework08.elf Homework08.map: $(OBJS) $(USER_OBJS) C:\Users\edoar\Documents\Polimi\5anno\SS\sensor-systems-2526\Homework08\STM32F401RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Homework08.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\edoar\Documents\Polimi\5anno\SS\sensor-systems-2526\Homework08\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Homework08.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
+Homework08.elf Homework08.map: $(OBJS) $(USER_OBJS) C:\Users\User\Documents\LORENZO\POLIMI\MAGISTRALE\V_YEAR\I_SEM\Sensor\ Systems\Homeworks\sensor-systems-2526\Homework08\STM32F401RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "Homework08.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\User\Documents\LORENZO\POLIMI\MAGISTRALE\V_YEAR\I_SEM\Sensor Systems\Homeworks\sensor-systems-2526\Homework08\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Homework08.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
