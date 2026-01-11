@@ -72,3 +72,13 @@
 - **TOPICS:** LED Matrix, SPI (TX DMA mode)
 - Transmit a letter to the LED matrix using SPI and a timer interrupt. Alternate between two letters (or one letter and one symbol).
 - *corrected version*
+
+## Homework10
+- **TOPICS:** Keyboard, Timer (IT mode)
+- Scan each column and read the keyboard using a timer interrupt and send the corresponding character to the PC using UART.
+- *corrected version*
+
+## Homework10_b
+- **TOPICS:** Encoder, Timer (encoder mode)
+- Read the encoder position and send to the PC the rotation speed in rpm.
+- *corrected version*

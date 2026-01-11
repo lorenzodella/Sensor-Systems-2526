@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,7 +47,7 @@ UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
-uint16_t old_count = 0;
+int16_t old_count = 0;
 
 /* USER CODE END PV */
 
@@ -65,41 +65,18 @@ static void MX_TIM2_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-int calculate_diff(int val){
-	int result;
-	if(__HAL_TIM_GET_FLAG(&htim3, TIM_FLAG_UPDATE)) {
-
-		if(val < old_count) {
-			result = (UINT16_MAX - old_count + val + 1);
-		} else {
-			result = -(UINT16_MAX - val + old_count + 1 );
-		}
-
-		__HAL_TIM_CLEAR_FLAG(&htim3, TIM_FLAG_UPDATE); //clear the flag
-
-		return result;
-	}
-
-	result = (val - old_count);
-	return result;
-
-}
-
-
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	if(htim->Instance == TIM2){
+		int16_t count = __HAL_TIM_GET_COUNTER(&htim3);
 
-	if(htim->Instance == htim2.Instance){
-		uint16_t count = __HAL_TIM_GET_COUNTER(&htim3);
-
-		int diff = calculate_diff((int)count);
+		int diff = count - old_count;
+		float rpm = diff*60.0/24.0;		// divide by resolution: ±2 increase for each of the 12 steps
 
 		char buf[128] = {0};
-		int len = snprintf(buf, sizeof(buf), "Rpm: %+.2f \r\n", (float)diff *60.0/24.0);
-		HAL_UART_Transmit_DMA(&huart2, buf, len);
+		int len = snprintf(buf, sizeof(buf), "Value: %d\tRpm: %+.2f \r\n", count, rpm);
+		HAL_UART_Transmit_DMA(&huart2, (uint8_t *)buf, len);
 
 		old_count = count;
-
-
 	}
 }
 
@@ -271,7 +248,7 @@ static void MX_TIM3_Init(void)
   htim3.Init.Period = 65535;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV4;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
   sConfig.IC1Polarity = TIM_ICPOLARITY_FALLING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;

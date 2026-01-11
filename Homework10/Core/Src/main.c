@@ -31,29 +31,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-uint16_t column_pins[] = {
-		GPIO_PIN_11,
-		GPIO_PIN_10,
-		GPIO_PIN_9,
-		GPIO_PIN_8,
-};
-uint16_t row_pins[] = {
-		GPIO_PIN_3,
-		GPIO_PIN_2,
-		GPIO_PIN_13,
-		GPIO_PIN_12,
-};
-uint8_t symbols[4][4] = {
-		{'F','E','D','C'},
-		{'B','A','9','8'},
-		{'7','6','5','4'},
-		{'3','2','1','0'},
-};
-struct {
-	int count;
-	uint8_t printed;
-} buttons[4][4] = {0};
-uint8_t flag[4] = {0};
+#define DEBOUNCE_TIME 2		// number of cycles a key has to be pressed for
+#define ROW_COUNT 4
+#define COLUMN_COUNT 4
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -68,25 +48,32 @@ UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
-int col = 0;
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	for(int row=0; row<4; row++) {
-		if(HAL_GPIO_ReadPin(GPIOC, row_pins[row]) == GPIO_PIN_RESET) {
-			if(!flag[row]){
-				buttons[row][col].count++;
-				flag[row] = 1;
-			}
-		} else {
-			buttons[row][col].count = 0;
-			buttons[row][col].printed = 0;
-			flag[row] = 0;
-		}
-	}
-	HAL_GPIO_WritePin(GPIOC, column_pins[col], GPIO_PIN_RESET);
-	col = (col+1) % 4;
-	HAL_GPIO_WritePin(GPIOC, column_pins[col], GPIO_PIN_SET);
-}
+uint16_t column_pins[] = {
+		GPIO_PIN_11, // C0
+		GPIO_PIN_10, // C1
+		GPIO_PIN_9,  // C2
+		GPIO_PIN_8,  // C3
+};
+uint16_t row_pins[] = {
+		GPIO_PIN_3,  // R0
+		GPIO_PIN_2,  // R1
+		GPIO_PIN_13, // R2
+		GPIO_PIN_12, // R3
+};
+uint8_t symbols[4][4] = {
+		{'F','E','D','C'},
+		{'B','A','9','8'},
+		{'7','6','5','4'},
+		{'3','2','1','0'},
+};
 
+struct {
+	int keypress;		// number of cycles the key was pressed for
+	uint8_t printed;	// if the letter was already been sent or not
+} buttons[4][4] = {0};
+
+int col = 0;
+uint8_t buf[4] = {0, '\r', '\n', '\0'};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,7 +88,40 @@ static void MX_TIM3_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	// read rows
+	for(int row=0; row<ROW_COUNT; row++) {
+		if(HAL_GPIO_ReadPin(GPIOC, row_pins[row]) == GPIO_PIN_RESET) {
+			buttons[row][col].keypress++; 	// button pressed for one cycle
+		} else {
+			buttons[row][col].keypress = 0; // reset counter
+		}
+	}
+	// disable current column
+	HAL_GPIO_WritePin(GPIOC, column_pins[col], GPIO_PIN_RESET);
+	col = (col+1) % COLUMN_COUNT;
+	// enable next column
+	HAL_GPIO_WritePin(GPIOC, column_pins[col], GPIO_PIN_SET);
 
+	// for each key, check...
+	for(int i=0; i<ROW_COUNT; i++){
+		for(int j=0; j<COLUMN_COUNT; j++){
+			// if was pressed long enough
+			if(buttons[i][j].keypress > DEBOUNCE_TIME){
+				// if it was not printed before
+				if(!buttons[i][j].printed){
+					buttons[i][j].printed = 1;
+					buf[0] = symbols[i][j];
+					// send data
+					HAL_UART_Transmit_DMA(&huart2, buf, sizeof(buf));
+				}
+			} else {
+				// if was released -> reset flag
+				buttons[i][j].printed = 0;
+			}
+		}
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -147,16 +167,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	uint8_t buf[4] = {0, '\r', '\n', '\0'};
-	for(int i=0; i<4; i++){
-		for(int j=0; j<4; j++){
-			if(buttons[i][j].count>=10 && !buttons[i][j].printed){
-				buttons[i][j].printed = 1;
-				buf[0] = symbols[i][j];
-				HAL_UART_Transmit_DMA(&huart2, buf, sizeof(buf));
-			}
-		}
-	}
   }
   /* USER CODE END 3 */
 }
@@ -228,7 +238,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 839;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 99;
+  htim3.Init.Period = 599;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -240,7 +250,7 @@ static void MX_TIM3_Init(void)
   {
     Error_Handler();
   }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
   {
