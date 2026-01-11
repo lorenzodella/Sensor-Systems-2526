@@ -67,3 +67,8 @@
 - **TOPICS:** Accelerometer, I2C (TX-RX DMA mode), USART (TX DMA mode)
 - Read the acceleration measured by the accelerometer and send it to a remote terminal every 1 second. Using timer interrupts, I2C DMA and UART DMA.
 - *corrected version*
+
+## Homework09
+- **TOPICS:** LED Matrix, SPI (TX DMA mode)
+- Transmit a letter to the LED matrix using SPI and a timer interrupt. Alternate between two letters (or one letter and one symbol).
+- *corrected version*

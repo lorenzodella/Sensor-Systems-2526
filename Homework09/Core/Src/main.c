@@ -31,7 +31,11 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define RCLK_PIN GPIOB, GPIO_PIN_6
+#define TIM_LETTER (&htim2)
+#define TIM_COLUMN (&htim3)
 
+#define COL_COUNT 5
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -43,12 +47,17 @@
 SPI_HandleTypeDef hspi1;
 DMA_HandleTypeDef hdma_spi1_tx;
 
+TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+uint8_t six[COL_COUNT] = {62, 73, 73, 73, 70};
+uint8_t seven[COL_COUNT] = {64, 64, 67, 76, 112};
+uint8_t *letters[] = {six, seven};
+int col = 0, letter = 0;
+uint8_t data[2];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -58,27 +67,34 @@ static void MX_DMA_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t six[] = {62, 73, 73, 73, 70};
-uint8_t seven[] = {64, 64, 67, 76, 112};
-uint8_t *letters[] = {six, seven};
-int col = 0, j = 0;
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	uint8_t data[] = {letters[j/250][col], 1<<(4-col)};
-	HAL_SPI_Transmit_DMA(&hspi1, data, sizeof(data));
-	col = (col+1) % 5;
-	j = (j+1) % 500;
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if (htim == TIM_LETTER) {
+    	// change letter
+        letter = (letter + 1) % (sizeof(letters) / sizeof(letters[0]));
+    }
+    if (htim == TIM_COLUMN) {
+    	// send {row, column} data
+        data[0] = letters[letter][col];
+        data[1] = 1 << (4 - col);
+        HAL_SPI_Transmit_DMA(&hspi1, data, sizeof(data));
+
+        col = (col + 1) % COL_COUNT;
+    }
 }
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
     if (hspi == &hspi1) {
-    	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
-    	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
+    	// send rising edge to display data
+    	HAL_GPIO_TogglePin(RCLK_PIN);
+    	HAL_GPIO_TogglePin(RCLK_PIN);
     }
 }
 /* USER CODE END 0 */
@@ -116,9 +132,11 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI1_Init();
   MX_TIM3_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-  HAL_TIM_Base_Start_IT(&htim3);
+  HAL_GPIO_WritePin(RCLK_PIN, GPIO_PIN_RESET);
+  HAL_TIM_Base_Start_IT(TIM_COLUMN);
+  HAL_TIM_Base_Start_IT(TIM_LETTER);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -213,6 +231,51 @@ static void MX_SPI1_Init(void)
   /* USER CODE BEGIN SPI1_Init 2 */
 
   /* USER CODE END SPI1_Init 2 */
+
+}
+
+/**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 8399;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 9999;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
 
 }
 
@@ -329,7 +392,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(SPI_RCLK_GPIO_Port, SPI_RCLK_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -337,12 +400,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PB6 */
-  GPIO_InitStruct.Pin = GPIO_PIN_6;
+  /*Configure GPIO pin : SPI_RCLK_Pin */
+  GPIO_InitStruct.Pin = SPI_RCLK_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(SPI_RCLK_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
