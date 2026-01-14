@@ -100,7 +100,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	// disable current column
 	HAL_GPIO_WritePin(GPIOC, column_pins[col], GPIO_PIN_RESET);
 	col = (col+1) % COLUMN_COUNT;
-	// enable next column
+	// enable next column so that it has time to reach the correct level
+	// and successfully read the buttons in the next timer callback
 	HAL_GPIO_WritePin(GPIOC, column_pins[col], GPIO_PIN_SET);
 
 	// for each key, check...

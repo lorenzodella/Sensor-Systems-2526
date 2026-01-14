@@ -468,6 +468,7 @@ void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
  80005aa:	4a07      	ldr	r2, [pc, #28]	@ (80005c8 <HAL_SPI_TxCpltCallback+0x28>)
  80005ac:	4293      	cmp	r3, r2
  80005ae:	d107      	bne.n	80005c0 <HAL_SPI_TxCpltCallback+0x20>
+    	// send rising edge to display data
     	HAL_GPIO_TogglePin(RCLK_PIN);
  80005b0:	2140      	movs	r1, #64	@ 0x40
  80005b2:	4806      	ldr	r0, [pc, #24]	@ (80005cc <HAL_SPI_TxCpltCallback+0x2c>)
@@ -848,8 +849,8 @@ static void MX_TIM2_Init(void)
     Error_Handler();
  80007ce:	f000 f91b 	bl	8000a08 <Error_Handler>
   }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
- 80007d2:	2300      	movs	r3, #0
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+ 80007d2:	2320      	movs	r3, #32
  80007d4:	603b      	str	r3, [r7, #0]
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
  80007d6:	2300      	movs	r3, #0

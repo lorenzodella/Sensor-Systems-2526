@@ -423,9 +423,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
  800054e:	2120      	movs	r1, #32
  8000550:	4809      	ldr	r0, [pc, #36]	@ (8000578 <HAL_GPIO_EXTI_Callback+0x78>)
  8000552:	f000 fd43 	bl	8000fdc <HAL_GPIO_WritePin>
-			} else {
 				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
 			}
+			// HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
 		}
 	}
 }

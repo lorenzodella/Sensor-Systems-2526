@@ -60,6 +60,7 @@ uint8_t ADDR;
 uint8_t ADDR_LIS2DE = 0b01010000;
 uint8_t ADDR_LIS2DW = 0b00110000;
 
+// SEE DATASHEET FOR DETAILS
 // reg addr, 1 Hz +  XYZ enabled
 uint8_t CTRL_REG1[] = {0x20, 0b00010111};
 // reg addr, no HPF
@@ -96,7 +97,7 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c){
 	char buf[128] = {0};
 	int len = snprintf(buf, sizeof(buf),
 				"x: %+.2f g\r\ny: %+.2f g\r\nz: %+.2f g\r\n\r\n",
-				coord.x/64.0, coord.y/64.0, coord.z/64.0);
+				coord.x/64.0, coord.y/64.0, coord.z/64.0); // sensitivity at 2g is (1/64=15.6 mg/digit)
 
 	HAL_UART_Transmit_DMA(&huart2, (uint8_t *)buf, len);
 }

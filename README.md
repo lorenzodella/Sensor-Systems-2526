@@ -43,7 +43,7 @@
 - Acquire the potentiometer voltage using a timer to trigger a conversion at a regular conversion rate of 1 Hz and showing the value on the LCD.
 - *corrected version*
 
-## Homework06_a
+## Homework06
 - **TOPICS:** Potentiometer, Temperature sensor, Vref, ADC (DMA circular mode), USART (TX DMA mode)
 - Acquire three voltages (Potentiometer, Temperature sensor, Vref) every 1s and send them to a remote terminal.
 - *corrected version*
@@ -74,11 +74,11 @@
 - *corrected version*
 
 ## Homework10
-- **TOPICS:** Keyboard, Timer (IT mode)
+- **TOPICS:** Keyboard, Timer (IT mode), USART (TX DMA mode)
 - Scan each column and read the keyboard using a timer interrupt and send the corresponding character to the PC using UART.
 - *corrected version*
 
 ## Homework10_b
-- **TOPICS:** Encoder, Timer (encoder mode)
+- **TOPICS:** Encoder, Timer (encoder mode), USART (TX DMA mode)
 - Read the encoder position and send to the PC the rotation speed in rpm.
 - *corrected version*
