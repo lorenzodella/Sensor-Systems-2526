@@ -36,6 +36,11 @@
 #define TIM_KEYBOARD (&htim4)
 #define TIM_MATRIX (&htim5)
 
+#define DEBOUNCE_TIME 2		// number of cycles a key has to be pressed for
+#define ROW_COUNT 4
+#define COLUMN_COUNT 4
+
+#define RCLK_PIN GPIOB, GPIO_PIN_6
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -56,59 +61,62 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-int i;
+int bit_n;
 uint8_t byte;
+uint8_t buffer = 0;
+uint8_t command = 0;
 
+// KEYBOARD VARIABLES
 uint16_t column_pins[] = {
-	GPIO_PIN_11,
-	GPIO_PIN_10,
-	GPIO_PIN_9,
-	GPIO_PIN_8,
+		GPIO_PIN_11, // C0
+		GPIO_PIN_10, // C1
+		GPIO_PIN_9,  // C2
+		GPIO_PIN_8,  // C3
 };
-
-
 uint16_t row_pins[] = {
-	GPIO_PIN_3,
-	GPIO_PIN_2,
-	GPIO_PIN_13,
-	GPIO_PIN_12,
+		GPIO_PIN_3,  // R0
+		GPIO_PIN_2,  // R1
+		GPIO_PIN_13, // R2
+		GPIO_PIN_12, // R3
 };
-
 uint8_t symbols[4][4] = {
-	{'F','E','D','C'},
-	{'B','A','9','8'},
-	{'7','6','5','4'},
-	{'3','2','1','0'},
+		{'F','E','D','C'},
+		{'B','A','9','8'},
+		{'7','6','5','4'},
+		{'3','2','1','0'},
 };
 
 struct {
-	int count;
-	uint8_t printed;
+	int keypress;		// number of cycles the key was pressed for
+	uint8_t printed;	// if the letter was already been sent or not
 } buttons[4][4] = {0};
 
-int col = 0;
-int col_matrix =0;
+int col_keyboard = 0;
 
-uint8_t buffer = 0;
+// LED MATRIX VARIABLES
+int col_matrix = 0;
+uint8_t data[2];
 
-uint8_t display_F[] = { 127, 72, 72, 72, 64 };
-uint8_t display_E[] = { 127, 73, 73, 73, 65 };
-uint8_t display_D[] = { 127, 65, 65, 34, 28 };
-uint8_t display_C[] = { 62, 65, 65, 65, 65};
-uint8_t display_B[] = {127, 73, 73, 73, 119};
-uint8_t display_A[] = {63, 72, 72, 72, 63};
-uint8_t display_9[] = {48, 73, 73, 73, 126};
-uint8_t display_8[] = {54, 73, 73, 73, 118};
-uint8_t display_7[] = {64, 67, 76, 80, 96};
-uint8_t display_6[] = {62, 73, 73, 73, 70};
-uint8_t display_5[] = {121, 73, 73, 73, 70};
-uint8_t display_4[] = {12, 20, 36, 127, 4};
-uint8_t display_3[] = {34, 65, 73, 73, 54};
-uint8_t display_2[] = {33, 67, 69, 73, 49};
-uint8_t display_1[] = {17, 33, 127, 1, 1};
-uint8_t display_0[] = {62, 65, 65, 65, 62};
+uint8_t display_F[] = { 127, 72, 72,  72,  64  };
+uint8_t display_E[] = { 127, 73, 73,  73,  65  };
+uint8_t display_D[] = { 127, 65, 65,  34,  28  };
+uint8_t display_C[] = { 62,  65, 65,  65,  65  };
+uint8_t display_B[] = { 127, 73, 73,  73,  119 };
+uint8_t display_A[] = { 63,  72, 72,  72,  63  };
+uint8_t display_9[] = { 48,  73, 73,  73,  126 };
+uint8_t display_8[] = { 54,  73, 73,  73,  118 };
+uint8_t display_7[] = { 64,  67, 76,  80,  96  };
+uint8_t display_6[] = { 62,  73, 73,  73,  70  };
+uint8_t display_5[] = { 121, 73, 73,  73,  70  };
+uint8_t display_4[] = { 12,  20, 36,  127, 4   };
+uint8_t display_3[] = { 34,  65, 73,  73,  54  };
+uint8_t display_2[] = { 33,  67, 69,  73,  49  };
+uint8_t display_1[] = { 17,  33, 127, 1,   1   };
+uint8_t display_0[] = { 62,  65, 65,  65,  62  };
+uint8_t display_OFF[] = { 0, 0, 0, 0, 0 };
 
 uint8_t *alphabet[] = {
+  [0] = display_OFF,
   ['F'] = display_F,
   ['E'] = display_E,
   ['D'] = display_D,
@@ -126,8 +134,6 @@ uint8_t *alphabet[] = {
   ['1'] = display_1,
   ['0'] = display_0,
 };
-
-
 
 /* USER CODE END PV */
 
@@ -150,88 +156,81 @@ static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN 0 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart == &huart1) {
-
-		HAL_TIM_Base_Start_IT(TIM_MATRIX);
-
+		// start a new receiving
 		HAL_UART_Receive_IT(&huart1, &buffer, sizeof(buffer));
+		// filter data
+		if(!((buffer <= 'F' && buffer >= 'A') || (buffer <= '9' && buffer >= '0'))) return;
+
+		// save command and debug
+		command = buffer;
+		HAL_UART_Transmit(&huart2, &buffer, sizeof(buffer), 100);
 	}
 }
 
 void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi) {
     if (hspi == &hspi1) {
-    	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
-    	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_6);
+    	// send rising edge to latch data
+    	HAL_GPIO_TogglePin(RCLK_PIN);
+    	HAL_GPIO_TogglePin(RCLK_PIN);
     }
 }
 
 
-void sendsByte(uint8_t byteToSend){
+void UART_IR_sendByte(uint8_t byteToSend){
 	byte = byteToSend;
+	// start baud rate timer
 	HAL_TIM_Base_Start_IT(TIM_BAUD);
+	// send start bit
 	HAL_TIM_PWM_Start(TIM_PWM, TIM_CHANNEL_3);
-	i = 0;
-
+	bit_n = 0;
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-
+	// when the baud rate timer elapses
 	if(htim == TIM_BAUD){
-		if(i > 8){
+		if(bit_n > 8){
+			// if I sent all the bits, stop the baud rate timer
 			HAL_TIM_Base_Stop_IT(TIM_BAUD);
 			return;
 		}
 
-		if(i == 8){
+		if(bit_n == 8){
+			// if it is the last bit, send a stop bit
 			HAL_TIM_PWM_Stop(TIM_PWM, TIM_CHANNEL_3);
-		}else if((byte >> i) & 0x1){
+		} else if((byte >> bit_n) & 0x1){
+			// if the current bit is a 1, turn off the LED
 			HAL_TIM_PWM_Stop(TIM_PWM, TIM_CHANNEL_3);
-		}else{
+		} else {
+			// if the current bit is a 0, turn on the LED
 			HAL_TIM_PWM_Start(TIM_PWM, TIM_CHANNEL_3);
 		}
-		i++;
-	}else if(htim == TIM_KEYBOARD){
-
-		uint8_t buf[4] = {0, '\r', '\n', '\0'};
-
-		for(int row=0; row<4; row++) {
+		bit_n++;
+	}
+	
+	if(htim == TIM_KEYBOARD){
+		// read rows
+		for(int row=0; row<ROW_COUNT; row++) {
 			if(HAL_GPIO_ReadPin(GPIOC, row_pins[row]) == GPIO_PIN_RESET) {
-
-				buttons[row][col].count++;
-
-				if(buttons[row][col].count>=10 && !buttons[row][col].printed){
-					buttons[row][col].printed = 1;
-					buf[0] = symbols[row][col];
-					sendsByte(buf[0]);
-
-				}
-
+				buttons[row][col_keyboard].keypress++; 	// button pressed for one cycle
 			} else {
-				buttons[row][col].count = 0;
-				buttons[row][col].printed = 0;
-
+				buttons[row][col_keyboard].keypress = 0; // reset counter
 			}
-
-
-
 		}
-
-		HAL_GPIO_WritePin(GPIOC, column_pins[col], GPIO_PIN_RESET);
-		col = (col+1) % 4;
-		HAL_GPIO_WritePin(GPIOC, column_pins[col], GPIO_PIN_SET);
-
-
-
-
-
-	}else if(htim == TIM_MATRIX){
-		if(!((buffer <= 'F' && buffer >= 'A') || (buffer <= '9' && buffer >= '0'))) return;
-		uint8_t data[] = {alphabet[buffer][col_matrix], 1<<(4-col_matrix)};
+		// disable current column
+		HAL_GPIO_WritePin(GPIOC, column_pins[col_keyboard], GPIO_PIN_RESET);
+		col_keyboard = (col_keyboard+1) % COLUMN_COUNT;
+		// enable next column so that it has time to reach the correct level
+		// and successfully read the buttons in the next timer callback
+		HAL_GPIO_WritePin(GPIOC, column_pins[col_keyboard], GPIO_PIN_SET);
+	}
+	
+	if(htim == TIM_MATRIX){
+		// send {row, column} data
+		data[0] = alphabet[command][col_matrix];
+		data[1] = 1 << (4 - col_matrix);
 		HAL_SPI_Transmit_DMA(&hspi1, data, sizeof(data));
 		col_matrix = (col_matrix+1) % 5;
-
 	}
-
-
 
 }
 
@@ -275,9 +274,13 @@ int main(void)
   MX_TIM5_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+  // start timers
   HAL_TIM_Base_Start_IT(TIM_KEYBOARD);
+  HAL_TIM_Base_Start_IT(TIM_MATRIX);
+  // receive from IR UART
   HAL_UART_Receive_IT(&huart1, &buffer, sizeof(buffer));
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+
+  HAL_GPIO_WritePin(RCLK_PIN, GPIO_PIN_RESET);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -287,6 +290,23 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  	// for each key, check...
+		for(int i=0; i<ROW_COUNT; i++){
+			for(int j=0; j<COLUMN_COUNT; j++){
+				// if was pressed long enough
+				if(buttons[i][j].keypress > DEBOUNCE_TIME){
+					// if it was not printed before
+					if(!buttons[i][j].printed){
+						buttons[i][j].printed = 1;
+						// send data
+						UART_IR_sendByte(symbols[i][j]);
+					}
+				} else {
+					// if was released -> reset flag
+					buttons[i][j].printed = 0;
+				}
+			}
+		}
 
   }
   /* USER CODE END 3 */

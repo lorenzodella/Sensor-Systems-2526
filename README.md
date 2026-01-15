@@ -82,3 +82,18 @@
 - **TOPICS:** Encoder, Timer (encoder mode), USART (TX DMA mode)
 - Read the encoder position and send to the PC the rotation speed in rpm.
 - *corrected version*
+
+## Homework11_TX
+- **TOPICS:** IR Communication, Keyboard, PWM, Timer (IT mode), USART (TX IR mode)
+- Scan the pushbutton matrix and send the data corresponding to the pressed button via IR UART.
+- *original version*
+
+## Homework11_RX
+- **TOPICS:** IR Communication, LED Matrix, SPI (TX DMA mode), Timer (IT mode), USART (RX IR mode)
+- Receive the IR UART data and display the corresponding character on the LED matrix.
+- *original version*
+
+## Homework11_b
+- **TOPICS:** IR Communication, Keyboard, PWM, LED Matrix, SPI (TX DMA mode), Timer (IT mode), USART (TX-RX IR mode)
+- Integrate IR UART TX and RX in the same board
+- *corrected version*
