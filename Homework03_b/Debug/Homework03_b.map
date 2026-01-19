@@ -3006,11 +3006,11 @@ LOAD C:/ST/STM32CubeIDE_1.19.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.ext
                 0x08000580       0x54 ./Core/Src/main.o
                 0x08000580                playsong
  .text.HAL_TIM_PeriodElapsedCallback
-                0x080005d4       0x6c ./Core/Src/main.o
+                0x080005d4       0x64 ./Core/Src/main.o
                 0x080005d4                HAL_TIM_PeriodElapsedCallback
  .text.HAL_GPIO_EXTI_Callback
-                0x08000640       0x34 ./Core/Src/main.o
-                0x08000640                HAL_GPIO_EXTI_Callback
+                0x08000638       0x3c ./Core/Src/main.o
+                0x08000638                HAL_GPIO_EXTI_Callback
  .text.main     0x08000674       0x20 ./Core/Src/main.o
                 0x08000674                main
  .text.SystemClock_Config

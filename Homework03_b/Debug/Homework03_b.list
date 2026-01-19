@@ -420,11 +420,11 @@ void Set_Note_Timer(note_t n) {
  8000548:	687a      	ldr	r2, [r7, #4]
  800054a:	4b0c      	ldr	r3, [pc, #48]	@ (800057c <Set_Note_Timer+0x40>)
  800054c:	681b      	ldr	r3, [r3, #0]
- 800054e:	f240 51dc 	movw	r1, #1500	@ 0x5dc
+ 800054e:	f44f 717a 	mov.w	r1, #1000	@ 0x3e8
  8000552:	fb01 f202 	mul.w	r2, r1, r2
  8000556:	62da      	str	r2, [r3, #44]	@ 0x2c
  8000558:	687b      	ldr	r3, [r7, #4]
- 800055a:	f240 52dc 	movw	r2, #1500	@ 0x5dc
+ 800055a:	f44f 727a 	mov.w	r2, #1000	@ 0x3e8
  800055e:	fb02 f303 	mul.w	r3, r2, r3
  8000562:	4a06      	ldr	r2, [pc, #24]	@ (800057c <Set_Note_Timer+0x40>)
  8000564:	60d3      	str	r3, [r2, #12]
@@ -494,90 +494,90 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     if (htim->Instance == TIM3) {
  80005dc:	687b      	ldr	r3, [r7, #4]
  80005de:	681b      	ldr	r3, [r3, #0]
- 80005e0:	4a12      	ldr	r2, [pc, #72]	@ (800062c <HAL_TIM_PeriodElapsedCallback+0x58>)
+ 80005e0:	4a10      	ldr	r2, [pc, #64]	@ (8000624 <HAL_TIM_PeriodElapsedCallback+0x50>)
  80005e2:	4293      	cmp	r3, r2
- 80005e4:	d11d      	bne.n	8000622 <HAL_TIM_PeriodElapsedCallback+0x4e>
+ 80005e4:	d11a      	bne.n	800061c <HAL_TIM_PeriodElapsedCallback+0x48>
     	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
  80005e6:	2104      	movs	r1, #4
- 80005e8:	4811      	ldr	r0, [pc, #68]	@ (8000630 <HAL_TIM_PeriodElapsedCallback+0x5c>)
+ 80005e8:	480f      	ldr	r0, [pc, #60]	@ (8000628 <HAL_TIM_PeriodElapsedCallback+0x54>)
  80005ea:	f001 fd69 	bl	80020c0 <HAL_TIM_PWM_Stop>
     	HAL_TIM_Base_Stop_IT(&htim3);
- 80005ee:	4811      	ldr	r0, [pc, #68]	@ (8000634 <HAL_TIM_PeriodElapsedCallback+0x60>)
+ 80005ee:	480f      	ldr	r0, [pc, #60]	@ (800062c <HAL_TIM_PeriodElapsedCallback+0x58>)
  80005f0:	f001 fc38 	bl	8001e64 <HAL_TIM_Base_Stop_IT>
     	if(++i<sizeof(song)/sizeof(song[0])){
- 80005f4:	4b10      	ldr	r3, [pc, #64]	@ (8000638 <HAL_TIM_PeriodElapsedCallback+0x64>)
+ 80005f4:	4b0e      	ldr	r3, [pc, #56]	@ (8000630 <HAL_TIM_PeriodElapsedCallback+0x5c>)
  80005f6:	681b      	ldr	r3, [r3, #0]
  80005f8:	3301      	adds	r3, #1
- 80005fa:	4a0f      	ldr	r2, [pc, #60]	@ (8000638 <HAL_TIM_PeriodElapsedCallback+0x64>)
+ 80005fa:	4a0d      	ldr	r2, [pc, #52]	@ (8000630 <HAL_TIM_PeriodElapsedCallback+0x5c>)
  80005fc:	6013      	str	r3, [r2, #0]
- 80005fe:	4b0e      	ldr	r3, [pc, #56]	@ (8000638 <HAL_TIM_PeriodElapsedCallback+0x64>)
+ 80005fe:	4b0c      	ldr	r3, [pc, #48]	@ (8000630 <HAL_TIM_PeriodElapsedCallback+0x5c>)
  8000600:	681b      	ldr	r3, [r3, #0]
  8000602:	2b04      	cmp	r3, #4
- 8000604:	d805      	bhi.n	8000612 <HAL_TIM_PeriodElapsedCallback+0x3e>
-    		song_playing = 1;
- 8000606:	4b0d      	ldr	r3, [pc, #52]	@ (800063c <HAL_TIM_PeriodElapsedCallback+0x68>)
- 8000608:	2201      	movs	r2, #1
- 800060a:	701a      	strb	r2, [r3, #0]
+ 8000604:	d802      	bhi.n	800060c <HAL_TIM_PeriodElapsedCallback+0x38>
     		playsong();
- 800060c:	f7ff ffb8 	bl	8000580 <playsong>
+ 8000606:	f7ff ffbb 	bl	8000580 <playsong>
     	} else {
     		__HAL_TIM_CLEAR_IT(&htim3, TIM_IT_UPDATE);
     		song_playing = 0;
     	}
     }
 }
- 8000610:	e007      	b.n	8000622 <HAL_TIM_PeriodElapsedCallback+0x4e>
+ 800060a:	e007      	b.n	800061c <HAL_TIM_PeriodElapsedCallback+0x48>
     		__HAL_TIM_CLEAR_IT(&htim3, TIM_IT_UPDATE);
- 8000612:	4b08      	ldr	r3, [pc, #32]	@ (8000634 <HAL_TIM_PeriodElapsedCallback+0x60>)
- 8000614:	681b      	ldr	r3, [r3, #0]
- 8000616:	f06f 0201 	mvn.w	r2, #1
- 800061a:	611a      	str	r2, [r3, #16]
+ 800060c:	4b07      	ldr	r3, [pc, #28]	@ (800062c <HAL_TIM_PeriodElapsedCallback+0x58>)
+ 800060e:	681b      	ldr	r3, [r3, #0]
+ 8000610:	f06f 0201 	mvn.w	r2, #1
+ 8000614:	611a      	str	r2, [r3, #16]
     		song_playing = 0;
- 800061c:	4b07      	ldr	r3, [pc, #28]	@ (800063c <HAL_TIM_PeriodElapsedCallback+0x68>)
- 800061e:	2200      	movs	r2, #0
- 8000620:	701a      	strb	r2, [r3, #0]
+ 8000616:	4b07      	ldr	r3, [pc, #28]	@ (8000634 <HAL_TIM_PeriodElapsedCallback+0x60>)
+ 8000618:	2200      	movs	r2, #0
+ 800061a:	701a      	strb	r2, [r3, #0]
 }
- 8000622:	bf00      	nop
- 8000624:	3708      	adds	r7, #8
- 8000626:	46bd      	mov	sp, r7
- 8000628:	bd80      	pop	{r7, pc}
- 800062a:	bf00      	nop
- 800062c:	40000400 	.word	0x40000400
- 8000630:	20000050 	.word	0x20000050
- 8000634:	20000098 	.word	0x20000098
- 8000638:	20000128 	.word	0x20000128
- 800063c:	2000012c 	.word	0x2000012c
+ 800061c:	bf00      	nop
+ 800061e:	3708      	adds	r7, #8
+ 8000620:	46bd      	mov	sp, r7
+ 8000622:	bd80      	pop	{r7, pc}
+ 8000624:	40000400 	.word	0x40000400
+ 8000628:	20000050 	.word	0x20000050
+ 800062c:	20000098 	.word	0x20000098
+ 8000630:	20000128 	.word	0x20000128
+ 8000634:	2000012c 	.word	0x2000012c
 
-08000640 <HAL_GPIO_EXTI_Callback>:
+08000638 <HAL_GPIO_EXTI_Callback>:
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
- 8000640:	b580      	push	{r7, lr}
- 8000642:	b082      	sub	sp, #8
- 8000644:	af00      	add	r7, sp, #0
- 8000646:	4603      	mov	r3, r0
- 8000648:	80fb      	strh	r3, [r7, #6]
+ 8000638:	b580      	push	{r7, lr}
+ 800063a:	b082      	sub	sp, #8
+ 800063c:	af00      	add	r7, sp, #0
+ 800063e:	4603      	mov	r3, r0
+ 8000640:	80fb      	strh	r3, [r7, #6]
 	if (GPIO_Pin == GPIO_PIN_8) {
- 800064a:	88fb      	ldrh	r3, [r7, #6]
- 800064c:	f5b3 7f80 	cmp.w	r3, #256	@ 0x100
- 8000650:	d108      	bne.n	8000664 <HAL_GPIO_EXTI_Callback+0x24>
+ 8000642:	88fb      	ldrh	r3, [r7, #6]
+ 8000644:	f5b3 7f80 	cmp.w	r3, #256	@ 0x100
+ 8000648:	d10b      	bne.n	8000662 <HAL_GPIO_EXTI_Callback+0x2a>
 		if(song_playing == 0) {
- 8000652:	4b06      	ldr	r3, [pc, #24]	@ (800066c <HAL_GPIO_EXTI_Callback+0x2c>)
- 8000654:	781b      	ldrb	r3, [r3, #0]
- 8000656:	2b00      	cmp	r3, #0
- 8000658:	d104      	bne.n	8000664 <HAL_GPIO_EXTI_Callback+0x24>
+ 800064a:	4b08      	ldr	r3, [pc, #32]	@ (800066c <HAL_GPIO_EXTI_Callback+0x34>)
+ 800064c:	781b      	ldrb	r3, [r3, #0]
+ 800064e:	2b00      	cmp	r3, #0
+ 8000650:	d107      	bne.n	8000662 <HAL_GPIO_EXTI_Callback+0x2a>
 			i=0;
- 800065a:	4b05      	ldr	r3, [pc, #20]	@ (8000670 <HAL_GPIO_EXTI_Callback+0x30>)
- 800065c:	2200      	movs	r2, #0
- 800065e:	601a      	str	r2, [r3, #0]
+ 8000652:	4b07      	ldr	r3, [pc, #28]	@ (8000670 <HAL_GPIO_EXTI_Callback+0x38>)
+ 8000654:	2200      	movs	r2, #0
+ 8000656:	601a      	str	r2, [r3, #0]
+			song_playing = 1;
+ 8000658:	4b04      	ldr	r3, [pc, #16]	@ (800066c <HAL_GPIO_EXTI_Callback+0x34>)
+ 800065a:	2201      	movs	r2, #1
+ 800065c:	701a      	strb	r2, [r3, #0]
 			playsong();
- 8000660:	f7ff ff8e 	bl	8000580 <playsong>
+ 800065e:	f7ff ff8f 	bl	8000580 <playsong>
 		}
 	}
 }
- 8000664:	bf00      	nop
- 8000666:	3708      	adds	r7, #8
- 8000668:	46bd      	mov	sp, r7
- 800066a:	bd80      	pop	{r7, pc}
+ 8000662:	bf00      	nop
+ 8000664:	3708      	adds	r7, #8
+ 8000666:	46bd      	mov	sp, r7
+ 8000668:	bd80      	pop	{r7, pc}
+ 800066a:	bf00      	nop
  800066c:	2000012c 	.word	0x2000012c
  8000670:	20000128 	.word	0x20000128
 
@@ -3091,7 +3091,7 @@ void HAL_GPIO_EXTI_IRQHandler(uint16_t GPIO_Pin)
     HAL_GPIO_EXTI_Callback(GPIO_Pin);
  80013bc:	88fb      	ldrh	r3, [r7, #6]
  80013be:	4618      	mov	r0, r3
- 80013c0:	f7ff f93e 	bl	8000640 <HAL_GPIO_EXTI_Callback>
+ 80013c0:	f7ff f93a 	bl	8000638 <HAL_GPIO_EXTI_Callback>
   }
 }
  80013c4:	bf00      	nop

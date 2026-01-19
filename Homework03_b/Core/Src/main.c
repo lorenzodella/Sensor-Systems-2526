@@ -44,7 +44,7 @@ typedef struct {
 #define LA4 1909
 #define SIb4 1802
 
-#define TEMPO 150
+#define TEMPO 100
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -111,7 +111,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     	HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
     	HAL_TIM_Base_Stop_IT(&htim3);
     	if(++i<sizeof(song)/sizeof(song[0])){
-    		song_playing = 1;
     		playsong();
     	} else {
     		__HAL_TIM_CLEAR_IT(&htim3, TIM_IT_UPDATE);
@@ -124,6 +123,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == GPIO_PIN_8) {
 		if(song_playing == 0) {
 			i=0;
+			song_playing = 1;
 			playsong();
 		}
 	}
