@@ -1,7 +1,9 @@
-# Sensor System 2025-2026: lab topics
+# Sensor System 2025-2026
+
+STMCubeIDE projects realized on a custom board based on an STMicroelectronics NUCLEO-F401RE board equipped with an STM32F401RE microcontroller.
 
 ## Homework02 - Microphone and LED
-- **TOPICS:** Microphone, LED, GPIO (interrupts, RW),
+- **TOPICS:** Microphone, LED, GPIO (interrupts, RW)
 - Modify the status (switch on / off) of the NUCLEO green LED, every time you snap your fingers.
 - *original version*
 
